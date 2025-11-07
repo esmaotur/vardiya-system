@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id        String        @id @default(cuid())
+  name      String
+  email     String        @unique
+  role      String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  assignments Assignment[]
+}
+
+model Shift {
+  id           String        @id @default(cuid())
+  date         DateTime      // sadece tarihi kullanacağız (saatler ayrı alanlarda string)
+  start        String        // "HH:MM"
+  end          String        // "HH:MM"
+  location     String?
+  maxEmployees Int           @default(1)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  assignments  Assignment[]
+}
+
+model Assignment {
+  id         String   @id @default(cuid())
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  employeeId String
+  shift      Shift    @relation(fields: [shiftId], references: [id])
+  shiftId    String
+
+  createdAt  DateTime @default(now())
+
+  @@unique([employeeId, shiftId], name: "uniq_employee_in_shift")
+}
